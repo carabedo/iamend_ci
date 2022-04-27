@@ -45,43 +45,6 @@ def csv2data(files,separador):
 
 
 
-def read(file, separador):
-
-    z=list()
-    with open(file, 'r') as csvfile:
-        spam = csv.reader(csvfile, delimiter=separador)
-
-        next(spam)
-        next(spam)
-        next(spam)
-        next(spam)
-
-        for row in spam:
-            z.append(row)
-
-    f=list()
-    rez=list()
-    imz=list()
-    n=list()
-    i=list()
-
-    for x in range(len(z)):
-        f.append(float(z[x][4]))
-        rez.append(float(z[x][12]))
-        imz.append(float(z[x][13]))
-        n.append(int(z[x][0]))
-        i.append(int(z[x][1]))
-
-    f = numpy.asarray(f)
-    w=2*numpy.pi*f
-    rez=numpy.asarray(rez)
-    imz=numpy.asarray(imz)
-    n=numpy.asarray(n)
-    i=numpy.asarray(i)
-    out=list([n,i,f, rez,imz, w])
-    out=numpy.array(out)
-    return(out)
-
 def read2(file, separador):
     z=list()
     with open(file, 'r') as csvfile:
@@ -286,6 +249,44 @@ def fitz0(bob,parametro,val,data):
 
 ################ nuevo
 
+
+
+def read(file, separador):
+
+    z=list()
+    with open(file, 'r') as csvfile:
+        spam = csv.reader(csvfile, delimiter=separador)
+
+        next(spam)
+        next(spam)
+        next(spam)
+        next(spam)
+
+        for row in spam:
+            z.append(row)
+
+    f=list()
+    rez=list()
+    imz=list()
+    n=list()
+    i=list()
+
+    for x in range(len(z)):
+        f.append(float(z[x][4]))
+        rez.append(float(z[x][12]))
+        imz.append(float(z[x][13]))
+        n.append(int(z[x][0]))
+        i.append(int(z[x][1]))
+
+    f = numpy.asarray(f)
+    w=2*numpy.pi*f
+    rez=numpy.asarray(rez)
+    imz=numpy.asarray(imz)
+    n=numpy.asarray(n)
+    i=numpy.asarray(i)
+    out=list([n,i,f, rez,imz, w])
+    out=numpy.array(out)
+    return(out)
 
 def dzcorrnorm(dataraw,Vzu,Z0):
     datams=datamean(dataraw)
@@ -508,7 +509,7 @@ def load(path=0):
         files=list()
         print('path=   '+folder_path)
         for (dirpath, dirnames, filenames) in os.walk(folder_path):
-
+            filenames.sort()
             for i,j in enumerate(filenames):
                 files.extend([dirpath + '\\'+j])
                 print(i,j)
@@ -525,7 +526,7 @@ def load(path=0):
         files=list()
         print(folder_path)
         for (dirpath, dirnames, filenames) in os.walk(folder_path):
-
+            filenames.sort()
             for i,j in enumerate(filenames):
                 files.extend([dirpath + '/'+j])
                 print(i,j)
