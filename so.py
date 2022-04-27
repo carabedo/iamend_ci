@@ -527,7 +527,7 @@ def load(path=0):
         for (dirpath, dirnames, filenames) in os.walk(folder_path):
 
             for i,j in enumerate(filenames):
-                files.extend([dirpath + '\\'+j])
+                files.extend([dirpath + '/'+j])
                 print(i,j)
             break
         files=[files,filenames]
