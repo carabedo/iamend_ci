@@ -5,17 +5,17 @@ import csv
 import numpy
 import numpy as np
 import cmath
-import plotly.graph_objs as go
-import plotly
-plotly.offline.init_notebook_mode(connected=True)
-import tkinter as tk
-from tkinter import filedialog
+# import plotly.graph_objs as go
+# import plotly
+# plotly.offline.init_notebook_mode(connected=True)
+# import tkinter as tk
+# from tkinter import filedialog
 import random
 import matplotlib.pyplot as plt
-plt.ion()
-import mpld3
-mpld3.enable_notebook()
-from mpld3 import plugins
+# plt.ion()
+# import mpld3
+# mpld3.enable_notebook()
+# from mpld3 import plugins
 
 
 

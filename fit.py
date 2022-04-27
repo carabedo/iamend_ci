@@ -1,16 +1,9 @@
 """ Modulo con las funciones para fitear impedancias"""
 import iamend_ci.theo as theo
-
-
 import numpy as np
 from scipy import optimize
-import tkinter as tk
-from tkinter import filedialog
-root = tk.Tk()
-root.withdraw()
 import plotly.graph_objs as go
 import plotly
-plotly.offline.init_notebook_mode(connected=True)
 from plotly.subplots import make_subplots
 import os
 import csv

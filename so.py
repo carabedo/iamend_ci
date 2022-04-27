@@ -2,15 +2,15 @@
 import iamend_ci.theo as theo
 
 import os
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 import csv
 import numpy
 import numpy as np
 import cmath
-import plotly.graph_objs as go
-import plotly
-plotly.offline.init_notebook_mode(connected=True)
+# import plotly.graph_objs as go
+# import plotly
+# plotly.offline.init_notebook_mode(connected=True)
 import random
 
 
