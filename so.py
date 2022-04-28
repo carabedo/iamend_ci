@@ -495,9 +495,7 @@ def load(path=0):
     devuelve una lista: 
         data[0] lista de los datos de cada archivo, cada indice es una matriz con los datos crudos de cada archivo
         
-        data[1] lista con los nombres de los archivos
-        
-        
+        data[1] lista con los nombres de los archivos        
         
     """
     if path==0:
@@ -637,37 +635,9 @@ def corr(f,bo,dataraw,Vzu='all',pltr=0):
             data=datams[1:]
             for i,x in enumerate(data):
                 zu=x[0]
-				   
-				  
-						
-							
-                dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
-								
-				  
-										   
-						   
-							
-								   
-								   
-								
-				  
-										 
-							 
-							 
-								   
-								   
+                dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )				
                 datacorr.append(dzucorr/x0)    
-
-						   
-																				  
-																				  
-													 
-								 
-	
-							
-
         else:
-
             za=data[0][0]
             data=data[Vzu]
             dataplot=[]
@@ -675,11 +645,8 @@ def corr(f,bo,dataraw,Vzu='all',pltr=0):
             for i,x in enumerate(data):
                 zu=x[1]
                 dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
-                datacorr.append(dzucorr/x0)
-
-                
+                datacorr.append(dzucorr/x0)                
         ret=list([np.array(datacorr),dataraw[1][1:]])
-
     return(ret)
 
 
@@ -702,4 +669,23 @@ def stats(data):
         DATA.append([Rm+1j*Xm,Rsd+1j*Xsd])
         
     return(DATA)      
+
+def pack(path,bobina,sigmas,espesores):
+    dataraw=load(path)
+    f=getf(dataraw)
+    dcorr=corr(f,bobina,dataraw)
+    exp=[]
+    for i,x in enumerate(dcorr[0]):
+
+        muestra={
+            'bo' : bobina,
+            'f' : f,
+            'dzcorrnorm' : x,
+            'sigma' : sigmas[i],
+            'espesor' : espesores[i],
+            'name' : dcorr[1][i]
+        }
+
+        exp.append(muestra)
+    return exp
 

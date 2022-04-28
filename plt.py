@@ -156,7 +156,10 @@ def ffit(fdata,save=0,fit='par',name=''):
         
 
         
-        
+
+
+
+
 ## plotly
 
 def semilog(x,datacorr,titulo='',mode='lines'):
