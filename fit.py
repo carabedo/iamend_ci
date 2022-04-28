@@ -3,15 +3,157 @@ import iamend_ci.theo as theo
 import numpy as np
 from scipy import optimize
 import plotly.graph_objs as go
-import plotly
+import matplotlib.pyplot as plt
+
 from plotly.subplots import make_subplots
-import os
-import csv
+
+def z1(exp,n):
+    
+    """z1 (frecuencia, bobina, datacorr, n, dpatron,sigma, mur)
+    Ajuste del lift-off
+    Parameters
+    ----------
+    f : array_like, vector con las frecuencias
+    datacorr : array_like, matriz con las mediciones
+    bo: array_like, vector con los parametros geometricos de la bobina
+    datacorr: array_like, matrix con las mediciones corregidas y nromalizadas
+    n : int, indice de la medicion 
+    dpatron: float, espesor muestra
+    sigma : float, conductividad muestra
+    mur: float, permeabilidad muestra
+    """    
+
+    f=exp[n]['f']
+    bo=exp[n]['bo']
+    dzucorrnorm=exp[n]['dzcorrnorm']
+    dpatron=exp[n]['espesor']
+    sigma=exp[n]['sigma']
+    name=exp[n]['name']
+    mur=1
+
+    def funz1(x,b):
+        r1=bo[0]
+        r2=bo[1]
+        dh=bo[2]
+        N=bo[3]
+        z1=b
+        bob=[r1,r2,dh,N,z1,1]
+        return theo.dzD(x,bob,sigma,dpatron,mur,3000).imag/x0
+    #[f,z0,dzucorr,w]
+    l0=bo[-1]
+    w=2*np.pi*f
+    x0=w*l0
+      
+    xmeas=f
+    ymeas=dzucorrnorm.imag   
+    fpar, fcov=optimize.curve_fit(funz1, xmeas, ymeas, p0=[1.1e-3], bounds=(0,2e-3))
+    
+
+    z1eff=fpar[0]
+    r1=bo[0]
+    r2=bo[1]
+    dh=bo[2]
+    N=bo[3]
+    boeff=[r1,r2,dh,N,z1eff,l0]
+    yteo=theo.dzD(f,boeff,sigma,dpatron,mur,1500)
+    yteo=yteo.imag/x0
+    
+    para_eff={'name' : 'z1', 'value' : z1eff*1000}
+
+    fig=imlogfit(f,[ymeas, yteo],para_eff,name)
+    print('z1 =',fpar[0]*1000,'mm')
+    return(fpar,fig)
+
+
+
+def imlogfit(f,data,para_eff,name,savefile=0):
+    """ agarra data procesada por fit.mu y guarda png """
+    ymeas=data[0]
+    yteo=data[1]
+    label=para_eff['name']
+    p_eff=para_eff['value']
+    fig=plt.figure(figsize=(8,6))
+    plt.semilogx(f,ymeas,'ok',markersize=4,markerfacecolor='none')
+    plt.semilogx(f,yteo,'k',label=label +'_eff = ' + str(np.round(p_eff,2)) )
+    plt.ylabel('$Im(\Delta Z)/X_0$',fontsize=12)
+    plt.xlabel('Frecuencia [Hz]',fontsize=12)
+    plt.legend(loc='lower left', prop={'size': 13})
+    #plt.title(acero+name[4:])
+    plt.title(name)
+    plt.grid(True, which="both")
+    if savefile==1:
+        g=name.split(' ')
+        fname=''.join(g)
+        plt.savefig(fname)   
+    return fig
 
 
 
 
 
+
+
+
+
+
+
+def mu(exp,n, z1eff):
+    """mu (frecuencia, bobina, datacorr, n, dpatron,sigma, mur)
+    Ajuste de la permeabilidad
+
+    Parameters
+    ----------
+    f : array_like, vector con las frecuencias
+    datacorr : array_like, matriz con las mediciones
+    bo: array_like, vector con los parametros geometricos de la bobina
+    datacorr: array_like, matrix con las mediciones corregidas y nromalizadas
+    n : int, indice de la medicion 
+    dpatron: float, espesor muestra
+    sigma : float, conductividad muestra
+    z1eff: float, lift-off efectivo
+    """    
+    f=exp[n]['f']
+    bo=exp[n]['bo']
+    dzucorrnorm=exp[n]['dzcorrnorm']
+    dpatron=exp[n]['espesor']
+    sigma=exp[n]['sigma']
+    name=exp[n]['name']
+    def funmu(x,a):
+        bob=bo[:]
+        bob[4]=z1eff
+        return theo.dzD(x,bob,sigma,dpatron,a,1500).imag/x0
+    #[f,z0,dzucorr,w]
+    l0=bo[-1]    
+    w=2*np.pi*f
+    x0=w*l0
+      
+    xmeas=f
+    ymeas=dzucorrnorm.imag   
+    fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[1], bounds=(0,150))
+    
+
+    mur=fpar[0]
+
+    yteo=theo.dzD(f,bo,sigma,dpatron,mur,1500)
+    yteo=yteo.imag/x0
+    
+
+    # fig=semilogfit(f,[ymeas, yteo],'curve_fit{mu} '+datacorr[1][n])
+    # print('mu =',fpar[0])
+    # return(fpar,fig)
+
+    
+    para_eff={'name' : 'mu_r', 'value' : mur}
+
+    fig=imlogfit(f,[ymeas, yteo],para_eff,name)
+    print('mu_r_eff =',fpar[0])
+    return(fpar,fig)
+
+
+
+
+
+# plotly
 def semilogfit(x,Y,titulo):
     """ fiteo y plot (plotly) varias muestras """
     
@@ -37,99 +179,6 @@ def semilogfit(x,Y,titulo):
     return(fig)
 
 
-
-
-
-
-def z1(f,bo,datacorr,n,dpatron,sigma,mur):
-    """z1 (frecuencia, bobina, datacorr, n, dpatron,sigma, mur)
-    Ajuste del lift-off
-    Parameters
-    ----------
-    f : array_like, vector con las frecuencias
-    datacorr : array_like, matriz con las mediciones
-    bo: array_like, vector con los parametros geometricos de la bobina
-    datacorr: array_like, matrix con las mediciones corregidas y nromalizadas
-    n : int, indice de la medicion 
-    dpatron: float, espesor muestra
-    sigma : float, conductividad muestra
-    mur: float, permeabilidad muestra
-    """    
-    def funz1(x,b):
-        r1=bo[0]
-        r2=bo[1]
-        dh=bo[2]
-        N=bo[3]
-        z1=b
-        bob=[r1,r2,dh,N,z1,1]
-        return theo.dzD(x,bob,sigma,dpatron,mur,3000).imag/x0
-    #[f,z0,dzucorr,w]
-    l0=bo[-1]
-    dzucorrnorm=datacorr[0][n]
-    w=2*np.pi*f
-    x0=w*l0
-      
-    xmeas=f
-    ymeas=dzucorrnorm.imag   
-    fpar, fcov=optimize.curve_fit(funz1, xmeas, ymeas, p0=[1.1e-3], bounds=(0,2e-3))
-    
-
-    z1eff=fpar[0]
-    r1=bo[0]
-    r2=bo[1]
-    dh=bo[2]
-    N=bo[3]
-    boeff=[r1,r2,dh,N,z1eff,l0]
-    yteo=theo.dzD(f,boeff,sigma,dpatron,mur,1500)
-    yteo=yteo.imag/x0
-    
-    fig=semilogfit(f,[ymeas, yteo],'curve_fit{z1} '+datacorr[1][n])
-    print('z1 =',fpar[0]*1000,'mm')
-    return(fpar,fig)
-
-
-
-
-
-
-def mu(f,bo,datacorr,n,sigma, z1eff, dpatron=1):
-    """mu (frecuencia, bobina, datacorr, n, dpatron,sigma, mur)
-    Ajuste de la permeabilidad
-
-    Parameters
-    ----------
-    f : array_like, vector con las frecuencias
-    datacorr : array_like, matriz con las mediciones
-    bo: array_like, vector con los parametros geometricos de la bobina
-    datacorr: array_like, matrix con las mediciones corregidas y nromalizadas
-    n : int, indice de la medicion 
-    dpatron: float, espesor muestra
-    sigma : float, conductividad muestra
-    z1eff: float, lift-off efectivo
-    """    
-    def funmu(x,a):
-        bob=bo[:]
-        bob[4]=z1eff
-        return theo.dzD(x,bob,sigma,dpatron,a,1500).imag/x0
-    
-    #[f,z0,dzucorr,w]
-    l0=bo[-1]
-    dzucorrnorm=datacorr[0][n]
-    w=2*np.pi*f
-    x0=w*l0
-      
-    xmeas=f
-    ymeas=dzucorrnorm.imag   
-    fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[1], bounds=(0,150))
-    
-
-    mur=fpar[0]
-    yteo=theo.dzD(f,bo,sigma,dpatron,mur,1500)
-    yteo=yteo.imag/x0
-    
-    fig=semilogfit(f,[ymeas, yteo],'curve_fit{mu} '+datacorr[1][n])
-    print('mu =',fpar[0])
-    return(fpar,fig)
 
 
 #####################

@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 
 
 
-def im(f,datacorr,n):
+def im(exp,n,figsize=[8,6]):
     """im( frecuencia, datacorr, n)
     Grafica la parte imaginaria de la impedancia corregida y normalizada.
     Parameters
@@ -38,15 +38,18 @@ def im(f,datacorr,n):
     datacorr : array_like, matriz con las mediciones
     n : int, indice de la medicion 
     """    
-    dz=datacorr[0][n]
+    dz=exp[n]['dzcorrnorm']
+    f=exp[n]['f']
+    name=exp[n]['name']
+    plt.figure(figsize=figsize)
     plt.semilogx(f,dz.imag,'ok',markersize=3,markerfacecolor='none')
     plt.ylabel('$Im(\Delta Z)/X_0$')
     plt.xlabel('Frecuencia [Hz]')
-    plt.title(datacorr[1][n])
+    plt.title(name)
     plt.grid(True, which="both")
     
     
-def re(f,datacorr,n):
+def re(exp,n,figsize=[8,6]):
     """re(frecuencia, datacorr, n)
     Grafica la parte real de la impedancia corregida y normalizada.
     Parameters
@@ -55,11 +58,14 @@ def re(f,datacorr,n):
     datacorr : array_like, matriz con las mediciones
     n : int, indice de la medicion 
     """    
-    dz=datacorr[0][n]
+    dz=exp[n]['dzcorrnorm']
+    f=exp[n]['f']
+    name=exp[n]['name']
+    plt.figure(figsize=figsize)
     plt.semilogx(f,dz.real,'ok',markersize=3,markerfacecolor='none')
     plt.ylabel('$Re(\Delta Z)/X_0$')
     plt.xlabel('Frecuencia [Hz]')
-    plt.title(datacorr[1][n])
+    plt.title(name)
     plt.grid(True, which="both")
         
 
