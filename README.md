@@ -41,7 +41,7 @@ exp1=ci.exp('carpeta con mediciones')
 ``` 
 Una vez creado el objeto exp, tenemos los sigueintes metodos y atributos:
 
- ```python
+ ```
  exp1.bobina : Nombre de la bobina
  exp1.coil : Array con valores de la bobina
  exp1.data : Lista con el array de los datos.
