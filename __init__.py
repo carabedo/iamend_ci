@@ -78,6 +78,20 @@ class exp():
         except:
             print('Corrija y normalice los datos usando .normcorr()')
         return
+
+
+
+    def fitfmues(self,n=-1,fn=4):
+        if n==-1 :
+            pass
+        else:
+            self.fmues=fit.fmu(self.f,self.coil,fn,self.dzcorrnorm[n],self.sigmas[n+1],self.files[n+1])
+
+
+
+
+
+
     # imprime la string para la instancia
     def __str__(self):
         return f'Experimento ({self.path})'

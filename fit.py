@@ -90,6 +90,35 @@ def mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
     return(fpar,fig)
 
 
+def fmu(f,coil,n,dzcorrnorm,sigma,name,dpatron=1):
+    bo=coil
+    mues=list()
+    yts=list()
+    fs=np.array_split(f,n)
+    ys=np.array_split(dzcorrnorm.imag,n)
+    l0=bo[-1]
+    boeff=coil[:]
+    def funmu(x,a):
+        return theo.dzD(x,boeff,sigma,dpatron,a,1500).imag/x0    
+    for i,frec in enumerate(fs):
+        w=2*np.pi*frec
+        x0=w*l0
+        xmeas=frec
+        ymeas=ys[i]
+        fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=5, bounds=(1, 200))    
+        yt=theo.dzD(frec,boeff,sigma,dpatron,fpar[0],1500).imag/x0     
+        yts.append(yt)    
+        mues.append(fpar[0])
+
+    datafmu={
+        'mues' : mues ,
+        'fs'   : fs ,
+        'ymeas'   : ys,
+        'yteos'   :yts,
+        'name'  : name
+    }          
+    return datafmu
+
 def imlogfit(f,data,para_eff,name,savefile=0):
     """ agarra data procesada por fit.mu y guarda png """
     ymeas=data[0]
