@@ -32,24 +32,38 @@ con:
 
 import iamend_ci as ci
 
-data=ci.so.load('carpeta con mediciones')
 
-# lee las frecuencias utilizadas en el experimento
+# Generamos un objeto de la clase experimento
+# esta carpeta tiene que tener los archivos csv de las mediciones 
+# y un archivo info.csv 
 
-f=ci.so.getf(data)
+exp1=ci.exp('carpeta con mediciones')
 
-# carga los parametros geometricos de la bobina
-bo=ci.bo.bobpp1
 
-# importa y corrige los valores de la impedancia
-datacorr=ci.so.corr(f,bo,data)
-```
+ ```python
+ exp1.bobina : Nombre de la bobina
+ exp1.coil : Array con valores de la bobina
+ exp1.data : Lista con el array de los datos.
+ exp1.espesores : Lista de espesores.
+ exp1.f : Lista de frecuencias.
+ exp1.files : Lista de nombres de archivos.
+ exp1.fitmues() : Metodo para ajustar permeabilidades.
+ exp1.fitpatron() : Metodo para ajustar z1eff usando las mediciones sobre el patron.
+ exp1.im(n) : Metodo para plotear la parte imaginaria de la medicion n.
+ exp1.info : Dataframe con los nombres de los archivos, conductividades, espesores.
+ exp1.normcorr() : Metodo para normalizar y corregir los datos.
+ exp1.path : Ruta de la carpeta donde estan los archivos del experimento.
+ exp1.re(n) :  Metodo para plotear la parte imaginaria de la medicion n.
+ exp1.sigmas : Lista de sigmas.
+ exp1.w : Lista de frecuencias * 2*np.pi.
+ ``` 
+
 
 ### grafico datos
 
 ```python
-# ploteo de la parte imaginaria de la impedancia corregida (parametros: x,Y,n= id medicion )
-ci.plt.im(f,datacorr,1)
+# ploteo de la parte imaginaria de la impedancia corregida (n= id medicion )
+exp.im(0)
 ```
 
 ![](/imgs/1.png)
@@ -59,20 +73,25 @@ ci.plt.im(f,datacorr,1)
 #### parametros geometricos efectivos
 
 ```phyton
-dp=15e-3
-sig=4e6
-mup=1
-# valor ajustado y grafico
-z1eff,figz1=ci.fit.z1(f,bo,datacorr,0,dp,sig,mup)
+exp1.fitpatron()
+```
+Luego de realizar el ajuste sobre el patron, el z1 efectivo esta en el atributo:
+
+```phyton
+exp1.z1eff
 ```
 
 #### permeabilidad relativa efectiva
 
-```python
-mueff,pltmu=ci.fit.mu(f,bo,datacorr,1,4e6,z1eff)
+```phyton
+exp1.fitmues()
 ```
 
-### densidad de corriente
+Luego de realizar el ajuste de las permeabilidades, los mues estan en el atributo:
+
+```phyton
+exp1.mues
+```
 
 
 
