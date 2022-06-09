@@ -250,44 +250,6 @@ def fitz0(bob,parametro,val,data):
 ################ nuevo
 
 
-
-def read(file, separador):
-
-    z=list()
-    with open(file, 'r') as csvfile:
-        spam = csv.reader(csvfile, delimiter=separador)
-
-        next(spam)
-        next(spam)
-        next(spam)
-        next(spam)
-
-        for row in spam:
-            z.append(row)
-
-    f=list()
-    rez=list()
-    imz=list()
-    n=list()
-    i=list()
-
-    for x in range(len(z)):
-        f.append(float(z[x][4]))
-        rez.append(float(z[x][12]))
-        imz.append(float(z[x][13]))
-        n.append(int(z[x][0]))
-        i.append(int(z[x][1]))
-
-    f = numpy.asarray(f)
-    w=2*numpy.pi*f
-    rez=numpy.asarray(rez)
-    imz=numpy.asarray(imz)
-    n=numpy.asarray(n)
-    i=numpy.asarray(i)
-    out=list([n,i,f, rez,imz, w])
-    out=numpy.array(out)
-    return(out)
-
 def dzcorrnorm(dataraw,Vzu,Z0):
     datams=datamean(dataraw)
     datams=[datams,dataraw[1]]
@@ -489,186 +451,83 @@ def iamp(data,vrms):
 
 
 #### nuevo
-def load(path=0):
+
+
+
+
+
+
+
+
+### nuevo 2
+
+
+
+
+def read(file, separador):
+
+    z=list()
+    with open(file, 'r') as csvfile:
+        spam = csv.reader(csvfile, delimiter=separador)
+
+        next(spam)
+        next(spam)
+        next(spam)
+        next(spam)
+
+        for row in spam:
+            z.append(row)
+
+    f=list()
+    rez=list()
+    imz=list()
+    n=list()
+    i=list()
+
+    for x in range(len(z)):
+        f.append(float(z[x][4]))
+        rez.append(float(z[x][12]))
+        imz.append(float(z[x][13]))
+        n.append(int(z[x][0]))
+        i.append(int(z[x][1]))
+
+    f = numpy.asarray(f)
+    w=2*numpy.pi*f
+    rez=numpy.asarray(rez)
+    imz=numpy.asarray(imz)
+    n=numpy.asarray(n)
+    i=numpy.asarray(i)
+    out=list([n,i,f, rez,imz, w])
+    out=numpy.array(out)
+    return(out)
+
+def load(path):
     """ carga archivos en la carpeta actual, todos deben pertenecer a un mismo experimento, mismas frecuencias y misma cantidad de repeticiones, se le puede asginar la direccion en disco de la carpeta a la variable path (tener cuidado con los //), si path=0 abre una ventana de windows para elegirla manualmente
     --------------------------------------------------------------------------------------
     devuelve una lista: 
         data[0] lista de los datos de cada archivo, cada indice es una matriz con los datos crudos de cada archivo
         
         data[1] lista con los nombres de los archivos        
-        
-    """
-    if path==0:
-        root = tk.Tk()
-        root.lift()
-        root.attributes('-topmost',True)
-        root.after_idle(root.attributes,'-topmost',False)
-        folder_path = filedialog.askdirectory()
-        files=list()
-        print('path=   '+folder_path)
-        for (dirpath, dirnames, filenames) in os.walk(folder_path):
-            filenames.sort()
-            for i,j in enumerate(filenames):
-                files.extend([dirpath + '\\'+j])
-                print(i,j)
-            break
-
-        root.withdraw()
-        files=[files,filenames]
-        data=list()
-        for file in files[0]:
-            data.append(read(file,';'))
-            
-    else:
-        folder_path = path
-        files=list()
-        print(folder_path)
-        for (dirpath, dirnames, filenames) in os.walk(folder_path):
-            filenames.sort()
-            for i,j in enumerate(filenames):
-                files.extend([dirpath + '/'+j])
-                print(i,j)
-            break
-        files=[files,filenames]
-        data=list()
-        for file in files[0]:
-            data.append(read(file,';'))
-     
-        
-    return(list([data,files[1]]))
-
-
-
-def getf(data):
-    """ obtiene el vector de frecuencias de los datos"""
-    return(data[0][0][2][:int(data[0][0][0][-1]/data[0][0][1][-1])])
-	
-
-def corr(f,bo,dataraw,Vzu='all',pltr=0):
-    """ corrige y normaliza los datos, toma como input el vector de frecuencias, la info de la bobina y los datos
-        devuelve una lista de arrays, cada array es la impedancia compleja corregida y normalizada para cada frecuencia, parte real y parte imaginaria
-        para recuperar la parte real  (.real) e imaginaria (.imag)
-    """
-    datams=stats(dataraw)
-    w=np.pi*2*f
-    Z0=bo[-2]
-    x0=w*Z0.imag
+    """    
     
-    if pltr==1:
-        datas=datams[1]
-        if Vzu=='all':
-             
-            za=data[0][1]
-            dataplot=[]
-            datacorr=[]
-            for i,x in enumerate(data):
-                f=x[0].real
-                zu=x[1]
-                w=x[2]
-                x0=w*Z0.imag
-                z0=Z0.real+1j*x0
-                dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
-                trace0 = go.Scatter(
-                x =f ,
-                y = (np.imag(dzucorr)/x0).real,
-                mode = 'lines',
-                name=datas[i],
-                legendgroup=datas[i])
-                dataplot.append(trace0)
-                trace1 = go.Scatter(
-                x = f,
-                y = (np.imag(zu-za)/x0).real,
-                mode = 'markers', showlegend=False,
-                legendgroup=datas[i])
-                #dataplot.append(trace1)
-                datacorr.append(dzucorr/x0)    
+    folder_path = path
+    files=list()
+    for (dirpath, dirnames, filenames) in os.walk(folder_path):
+        filenames.sort()
+        for i,j in enumerate(filenames):
+            files.extend([dirpath + '/'+j])
+        break
 
-            layout = go.Layout(
-            xaxis=dict(        type='log',zeroline=False , autorange=True   ),
-            yaxis=dict(        type='linear',zeroline=False,autorange=True  ))
-            fig = go.Figure(data=dataplot[1:], layout=layout)
-            plotly.offline.iplot(fig)
-
-        else:	
-            za=data[0][1]
-            data=data[Vzu]
-            dataplot=[]
-            datacorr=[]
-            for i,x in enumerate(data):
-                f=x[0].real
-                zu=x[1]
-                w=x[2]
-                x0=w*Z0.imag
-                z0=Z0.real+1j*x0
-                dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
-                trace0 = go.Scatter(
-                x = f,
-                y = (np.imag(dzucorr)/x0).real,
-                mode = 'lines',
-                name=datas[i+1],
-                legendgroup=datas[i+1])
-                dataplot.append(trace0)
-                trace1 = go.Scatter(
-                x = f,
-                y = (np.imag(zu-za)/x0).real,
-                mode = 'markers',
-                showlegend=False,
-                legendgroup=datas[i+1])
-                dataplot.append(trace1)
-                datacorr.append([f,Z0.imag,dzucorr/x0])
-
-            layout = go.Layout(
-                    xaxis=dict(        type='log',zeroline=False , autorange=True   ),
-                    yaxis=dict(        type='linear',zeroline=False,autorange=True  ))
-            fig = go.Figure(data=dataplot, layout=layout)
-            plotly.offline.iplot(fig)
-        ret=[fig,datacorr[1:]]
-        
-    if pltr==0:
-        x0=f*2*np.pi*bo[-1]
-        z0=np.real(bo[-2])+1j*x0
-        if Vzu=='all':
-            #[0] primer archivo 0[0] f 0[1]z   0[2]w 
-            za=datams[0][0]
-            dataplot=[]
-            datacorr=[]
-            data=datams[1:]
-            for i,x in enumerate(data):
-                zu=x[0]
-                dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )				
-                datacorr.append(dzucorr/x0)    
-        else:
-            za=data[0][0]
-            data=data[Vzu]
-            dataplot=[]
-            datacorr=[]
-            for i,x in enumerate(data):
-                zu=x[1]
-                dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
-                datacorr.append(dzucorr/x0)                
-        ret=list([np.array(datacorr),dataraw[1][1:]])
-    return(ret)
+    files=[files,filenames]
+    data=list()
+    for file in files[0]:
+        if 'info' not in file:
+            data.append(read(file,';')) 
+     
+    return data  
 
 
-def stats(data):
-    dataz3=data[0]
-    DATA=[]
-    for n,x in enumerate(dataz3):
-        ni=int(x[1][-1])
-        nf=int(int(x[0][-1])/ni)
-        X=np.reshape(x[4],(ni,nf))
-        R=np.reshape(x[3],(ni,nf))
-        
-        R=np.array(R[1:,:])
-        X=np.array(X[1:,:])
-        Xm=np.mean(X,0)
-        Xsd=np.std(X,0)
-        Rm=np.mean(R,0)
-        Rsd=np.std(R,0)
-        
-        DATA.append([Rm+1j*Xm,Rsd+1j*Xsd])
-        
-    return(DATA)      
+
 
 def pack(path,bobina,sigmas,espesores):
     dataraw=load(path)
@@ -689,3 +548,63 @@ def pack(path,bobina,sigmas,espesores):
         exp.append(muestra)
     return exp
 
+def getf(data):
+    """ obtiene el vector de frecuencias de los datos"""
+    return(data[0][2][:int(data[0][0][-1]/data[0][1][-1])])
+	
+
+
+
+def corr(f,bo,dataraw,Vzu='all'):
+    """ corrige y normaliza los datos, toma como input el vector de frecuencias, la info de la bobina y los datos
+        devuelve una lista de arrays, cada array es la impedancia compleja corregida y normalizada para cada frecuencia, parte real y parte imaginaria
+        para recuperar la parte real  (.real) e imaginaria (.imag)
+    """
+    datams=stats(dataraw)
+    w=np.pi*2*f
+    Z0=bo[-2]
+    x0=w*Z0.imag              
+   
+    x0=f*2*np.pi*bo[-1]
+    z0=np.real(bo[-2])+1j*x0
+    if Vzu=='all':
+        #[0] primer archivo 0[0] f 0[1]z   0[2]w 
+        za=datams[0][0]
+        dataplot=[]
+        datacorr=[]
+        data=datams[1:]
+        for i,x in enumerate(data):
+            zu=x[0]
+            dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )				
+            datacorr.append(dzucorr/x0)    
+    else:
+        za=data[0][0]
+        data=data[Vzu]
+        dataplot=[]
+        datacorr=[]
+        for i,x in enumerate(data):
+            zu=x[1]
+            dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
+            datacorr.append(dzucorr/x0)                
+    ret=list(np.array(datacorr))
+    return(ret)
+
+def stats(data):
+    dataz3=data[0]
+    DATA=[]
+    for n,x in enumerate(dataz3):
+        ni=int(x[1][-1])
+        nf=int(int(x[0][-1])/ni)
+        X=np.reshape(x[4],(ni,nf))
+        R=np.reshape(x[3],(ni,nf))
+        
+        R=np.array(R[1:,:])
+        X=np.array(X[1:,:])
+        Xm=np.mean(X,0)
+        Xsd=np.std(X,0)
+        Rm=np.mean(R,0)
+        Rsd=np.std(R,0)
+        
+        DATA.append([Rm+1j*Xm,Rsd+1j*Xsd])
+        
+    return(DATA)      
