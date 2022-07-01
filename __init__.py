@@ -24,9 +24,9 @@ class exp():
             self.files=info.iloc[:,0]
             self.sigmas=info.iloc[:,1]
             self.espesores=info.iloc[:,2]
-            if len(info.bobina.unique()) == 1:
-                self.bobina=info.bobina[0]
-                self.coil=bo.data[self.bobina][:]
+            if len(info.bobina.unique()) == 1:             
+                self.bobina=bo.data_dicts[info.bobina[0]]     
+                self.coil=bo.data[info.bobina[0]]   
             else:
                 print('Mas de una bobina, separe las mediciones en carpetas para cada bobina.')
             self.data=so.load(self.path)
