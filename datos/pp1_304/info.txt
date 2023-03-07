@@ -1,0 +1,5 @@
+archivo,conductividad,espesor,bobina
+Exp00.csv,0,0,pp1
+ExpM4_304.csv,0,0,pp1
+ExpM6_304.csv,0,0,pp1
+ExpPat_3948.csv,0,0,pp1

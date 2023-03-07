@@ -1,0 +1,10 @@
+archivo,conductividad,espesor,bobina
+Exp_304_M02.csv,1030000,2.289,m1
+Exp_304_M03.csv,1040000,2.3,m1
+Exp_304_M04.csv,1060000,2.312,m1
+Exp_304_M05.csv,1140000,2.317,m1
+Exp_304_M06.csv,1240000,2.28,m1
+Exp_304_M07.csv,1260000,2.288,m1
+Exp_304_M09.csv,1310000,2.268,m1
+Exp_304_M11.csv,1400000,2.317,m1
+Exp_Aire.csv,0,0,m1
