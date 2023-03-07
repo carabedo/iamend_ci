@@ -10,5 +10,5 @@ Exp_347_M08.csv,1415286.59,2.3025,m1
 Exp_347_M09.csv,1377247.16,2.225833333,m1
 Exp_347_M11.csv,1432375.75,2.243,m1
 Exp_Aire.csv,0,0,m1
-Exp_Patron78.csv,0,0,m1
-Exp_Patron80.csv,0,0,m1
+Exp_Patron78.csv,15.08,610200,m1
+Exp_Patron80.csv,14.99,8632000,m1
