@@ -7,6 +7,7 @@ import iamend_ci.ax as ax
 import os
 import pandas as pd
 import numpy as np
+import plotly.express as px
 #esto sirve para no tener daramas con el path en windows/unix
 from pathlib import Path
 
@@ -19,27 +20,58 @@ class exp():
             infopath=[x for x in os.listdir(path) if 'info' in x][0]
             data_folder = Path(path)
             infofullpath=data_folder / infopath
-            info=pd.read_csv(infofullpath)    
+            info=pd.read_csv(str(infofullpath)) 
             self.info=info
             self.files=info.iloc[:,0]
             self.sigmas=info.iloc[:,1]
             self.espesores=info.iloc[:,2]
+
             if len(info.bobina.unique()) == 1:             
                 self.bobina=bo.data_dicts[info.bobina[0]]     
                 self.coil=bo.data[info.bobina[0]]   
             else:
                 print('Mas de una bobina, separe las mediciones en carpetas para cada bobina.')
-            self.data=so.load(self.path)
+            
+            try:
+                self.data=so.load(self.path)
+            except:
+                self.data=so.load(self.path,separador=',')
+
+            print(self.info)  
             self.f=so.getf(self.data)
             self.w=2*np.pi*self.f
-        except:
-            print('Falta archivo info, con nombres de archivos, conductividades, espesores y bobina utilizada')
+            # Genero como atributos los dataframes
+            for i,file_data in enumerate(self.data):
+                columns_names=["Index", "Sweep Number","Frequency (Hz)" , 
+                "Impedance Real (Ohms)","Impedance Imaginary (Ohms)","2*pi*f"]
+                df=pd.DataFrame(file_data.T, columns=columns_names)
+                # usando setattr genero de manera dinamica los nombres 
+                # de los atributos
+                setattr(self,'df'+ str(i),df)
+        except Exception as e:
+            print(e)
 
- 
 
     def normcorr(self):
         self.dzcorrnorm=so.corr(self.f,self.coil,[self.data],Vzu='all') 
-        return        
+        # muestras=[x.split('_')[-1][:3] for x in self.files.values if (('Aire' not in x) & ('Pat' not in x)) ]
+        muestras=[x.split('_')[-1][:3] for x in self.files.values if ('Aire' not in x) ]
+        idzcorr=pd.DataFrame(np.array(self.dzcorrnorm).imag.T, columns=muestras)
+        idzcorr['f']=self.f
+        redzcorr=pd.DataFrame(np.array(self.dzcorrnorm).real.T, columns=muestras)
+        redzcorr['f']=self.f
+        self.imdz=idzcorr
+        self.redz=redzcorr  
+
+    def implots(self):
+        if hasattr(self,'imdz'):
+            dfm = self.imdz.melt('f', var_name='muestra', value_name='imdzcorrnorm')
+            return px.line(dfm, x='f',y='imdzcorrnorm',color='muestra',log_x=True)
+        
+    def replots(self):
+        if hasattr(self,'redz'):
+            dfm = self.redz.melt('f', var_name='muestra', value_name='redzcorrnorm')
+            return px.line(dfm, x='f',y='redzcorrnorm',color='muestra',log_x=True)
 
     def im(self,n):
         plt.im(self.dzcorrnorm[n+1],self.f,self.files[n+1])

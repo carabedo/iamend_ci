@@ -3,7 +3,6 @@ import os
 import csv
 import numpy as np
 
-
 ### nuevo v2
 
 def read(file, separador):
@@ -43,7 +42,7 @@ def read(file, separador):
     out=np.array(out)
     return(out)
 
-def load(path):
+def load(path,separador=';'):
     """ carga archivos en la carpeta actual, todos deben pertenecer a un mismo experimento, mismas frecuencias y misma cantidad de repeticiones, se le puede asginar la direccion en disco de la carpeta a la variable path (tener cuidado con los //), si path=0 abre una ventana de windows para elegirla manualmente
     --------------------------------------------------------------------------------------
     devuelve una lista: 
@@ -63,9 +62,8 @@ def load(path):
     files=[files,filenames]
     data=list()
     for file in files[0]:
-        if 'info' not in file:
-            data.append(read(file,';')) 
-     
+        if ('info' not in file) & ('csv' in file):
+            data.append(read(file,separador)) 
     return data  
 
 
