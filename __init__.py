@@ -55,7 +55,7 @@ class exp():
     def normcorr(self):
         self.dzcorrnorm=so.corr(self.f,self.coil,[self.data],Vzu='all') 
         # muestras=[x.split('_')[-1][:3] for x in self.files.values if (('Aire' not in x) & ('Pat' not in x)) ]
-        muestras=[x.split('_')[-1][:3] for x in self.files.values if ('Aire' not in x) ]
+        muestras=[x.split('_')[-1].split('.')[0] for x in self.files.values if ('Aire' not in x) ]
         idzcorr=pd.DataFrame(np.array(self.dzcorrnorm).imag.T, columns=muestras)
         idzcorr['f']=self.f
         redzcorr=pd.DataFrame(np.array(self.dzcorrnorm).real.T, columns=muestras)
