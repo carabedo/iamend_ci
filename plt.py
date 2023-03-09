@@ -1,4 +1,4 @@
-""" Modulo con funciones para graficar en matplotlib o plotly"""	
+""" Modulo con funciones para graficar en matplotlib"""	
 import iamend_ci.theo as theo												
 import numpy as np
 import matplotlib.pyplot as plt

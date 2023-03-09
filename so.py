@@ -6,11 +6,12 @@ import numpy as np
 ### nuevo v2
 
 def read(file, separador):
-
+    # lee archivo csv del solatron
+    # se puede definir el separador
     z=list()
     with open(file, 'r') as csvfile:
         spam = csv.reader(csvfile, delimiter=separador)
-
+        #lineas del header
         next(spam)
         next(spam)
         next(spam)

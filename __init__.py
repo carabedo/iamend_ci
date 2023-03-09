@@ -4,6 +4,7 @@ import iamend_ci.fit as fit
 import iamend_ci.so as so
 import iamend_ci.plt as plt
 import iamend_ci.ax as ax
+import iamend_ci.pxplt as px
 import os
 import pandas as pd
 import numpy as np
@@ -12,6 +13,20 @@ import plotly.express as px
 from pathlib import Path
 
 
+class DataFrameCI(pd.DataFrame):
+    # construyo esta clase para extender la funcionalidad 
+    # del dataframe de pandas, le agrego la posibilidad
+    # de graficar las 11 mediciones que se realizan sobre 
+    # cada muestra
+    def __init__(self,filename,bobina,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # solo me deja agregar atributos que no sean listas.
+        self.filename=filename
+        self.l0=bobina['L0']
+    def impx(self):
+        self['idznorm']=self['Impedance Imaginary (Ohms)']/(self['2*pi*f']*self.l0)
+        self['Sweep Number']=self['Sweep Number'].astype(float).astype(int)
+        return px.line(self, x='Frequency (Hz)',y='idznorm',color='Sweep Number',log_x=True)
 
 class exp():
     def __init__(self,path):
@@ -45,6 +60,7 @@ class exp():
                 columns_names=["Index", "Sweep Number","Frequency (Hz)" , 
                 "Impedance Real (Ohms)","Impedance Imaginary (Ohms)","2*pi*f"]
                 df=pd.DataFrame(file_data.T, columns=columns_names)
+                df=DataFrameCI(filename=self.files[i],bobina=self.bobina,data=df)
                 # usando setattr genero de manera dinamica los nombres 
                 # de los atributos
                 setattr(self,'df'+ str(i),df)
