@@ -10,5 +10,5 @@ Exp_347_M07.csv,0,0,m1
 Exp_347_M08.csv,0,0,m1
 Exp_347_M09.csv,0,0,m1
 Exp_347_M11.csv,0,0,m1
-Exp_347_Patron78.csv,0,0,m1
-Exp_347_Patron80.csv,0,0,m1
+Exp_347_P066.csv,0,0,m1
+Exp_347_P068.csv,0,0,m1
