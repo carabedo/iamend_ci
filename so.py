@@ -1,9 +1,10 @@
-""" Modulo para el procesamiento de los archivos CVS del solartron"""
-import os
+import pandas as pd
 import csv
+import plotly.express as px
 import numpy as np
-
-### nuevo v2
+#esto sirve para no tener daramas con el path en windows/unix
+from pathlib import Path #falta implementar
+import traceback
 
 def read(file, separador):
     # lee archivo csv del solatron
@@ -19,114 +20,213 @@ def read(file, separador):
 
         for row in spam:
             z.append(row)
+    df=pd.DataFrame(z)
+    df=df.iloc[:,[0,1,4,12,13]]
+    df.columns=['indice','repeticion','f','real','imag']
+    df=df.astype(float)
+    df.indice=df.indice.astype('int')
+    df.repeticion=df.repeticion.astype('int')
+    return df
 
-    f=list()
-    rez=list()
-    imz=list()
-    n=list()
-    i=list()
 
-    for x in range(len(z)):
-        f.append(float(z[x][4]))
-        rez.append(float(z[x][12]))
-        imz.append(float(z[x][13]))
-        n.append(int(z[x][0]))
-        i.append(int(z[x][1]))
-
-    f = np.asarray(f)
-    w=2*np.pi*f
-    rez=np.asarray(rez)
-    imz=np.asarray(imz)
-    n=np.asarray(n)
-    i=np.asarray(i)
-    out=list([n,i,f, rez,imz, w])
-    out=np.array(out)
-    return(out)
-
-def load(path,separador=';'):
-    """ carga archivos en la carpeta actual, todos deben pertenecer a un mismo experimento, mismas frecuencias y misma cantidad de repeticiones, se le puede asginar la direccion en disco de la carpeta a la variable path (tener cuidado con los //), si path=0 abre una ventana de windows para elegirla manualmente
-    --------------------------------------------------------------------------------------
-    devuelve una lista: 
-        data[0] lista de los datos de cada archivo, cada indice es una matriz con los datos crudos de cada archivo
-        
-        data[1] lista con los nombres de los archivos        
-    """    
+class DataFrameCI(pd.DataFrame):
+    # construyo esta clase para extender la funcionalidad 
+    # del dataframe de pandas, le agrego la posibilidad
+    # de graficar las 11 mediciones que se realizan sobre 
+    # cada muestra
+    def __init__(self,filename,bobina,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # solo me deja agregar atributos que no sean listas.
+        self.filename=filename
+        self.l0=bobina['L0']
+    def impx(self):
+        self['idznorm']=self['imag']/(2*np.pi*self['f']*self.l0)
+        self['repeticion']=self['repeticion'].astype(str)
+        return px.scatter(self, x='f',y='idznorm',color='repeticion',log_x=True)
+    def repx(self):
+        self['repeticion']=self['repeticion'].astype(str)
+        return px.scatter(self, x='f',y='real',color='repeticion',log_x=True)
     
-    folder_path = path
-    files=list()
-    for (dirpath, dirnames, filenames) in os.walk(folder_path):
-        filenames.sort()
-        for i,j in enumerate(filenames):
-            files.extend([dirpath + '/'+j])
-        break
+def load(exp,separador=';'):
+    folder_path=exp.path
+    filepaths=exp.info.archivo.values
 
-    files=[files,filenames]
+    #hay que remplazar por diccionario se mezclan los datos.
     data=list()
-    for file in files[0]:
-        if ('info' not in file) & ('csv' in file):
-            data.append(read(file,separador)) 
+    for k,filepath in enumerate(filepaths):
+        if ('info' not in filepath) & ('csv' in filepath):
+            df=read(folder_path+'/'+filepath,separador)
+            dfci=DataFrameCI(filename=filepath,bobina=exp.bobina,data=df)
+            data.append(dfci) 
     return data  
 
 
 
-def getf(data):
-    """ obtiene el vector de frecuencias de los datos"""
-    return(data[0][2][:int(data[0][0][-1]/data[0][1][-1])])
-	
+def getf(exp):
+    '''encuentra y chequea que todos los archivos del experimento tengan los mismos
+    valores de frecuencia'''
+
+    if len(set([x.repeticion.max() for x in exp.data])) > 1:
+        print('Inconsistencia en los archivos en la cantidad de repeticiones')
+        
+    
+    lista_fs=[x[x['repeticion']==1]['f'] for x in exp.data ]
+    
+    if (np.array(lista_fs)-np.array(lista_fs[0])).sum().sum()==0:
+        return np.sort(np.array(list(set(lista_fs[0]))))
+    else:
+        print('Inconsistencia en los archivos para el rango de frecuencias.')
 
 
 
-def corr(f,bo,dataraw,Vzu='all'):
+
+
+def corrnorm_dict(exp,test=True,dropfirst=True):
     """ corrige y normaliza los datos, toma como input el vector de frecuencias, la info de la bobina y los datos
         devuelve una lista de arrays, cada array es la impedancia compleja corregida y normalizada para cada frecuencia, parte real y parte imaginaria
         para recuperar la parte real  (.real) e imaginaria (.imag)
-    """
-    datams=stats(dataraw)
-    w=np.pi*2*f
-    Z0=bo[-2]
-    x0=w*Z0.imag              
-   
-    x0=f*2*np.pi*bo[-1]
-    z0=np.real(bo[-2])+1j*x0
-    if Vzu=='all':
-        #[0] primer archivo 0[0] f 0[1]z   0[2]w 
-        za=datams[0][0]
-        datacorr=[]
-        data=datams[1:]
-        for i,x in enumerate(data):
-            zu=x[0]
-            dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )				
-            datacorr.append(dzucorr/x0)    
-    else:
-        za=data[0][0]
-        data=data[Vzu]
-        datacorr=[]
-        for i,x in enumerate(data):
-            zu=x[1]
-            dzucorr=((1/(1/zu - 1/za + 1/z0))-z0  )
-            datacorr.append(dzucorr/x0)                
-    ret=list(np.array(datacorr))
-    return(ret)
+        
+        z=re+i*2pi*f*l0
+    """ 
+    data_mean,data_std,data_test=stats_dict(exp,test=test,dropfirst=dropfirst)
 
-def stats(data):
-    dataz3=data[0]
-    DATA=[]
-    for n,x in enumerate(dataz3):
-        ni=int(x[1][-1])
-        nf=int(int(x[0][-1])/ni)
-        X=np.reshape(x[4],(ni,nf))
-        R=np.reshape(x[3],(ni,nf))
-        
-        R=np.array(R[1:,:])
-        X=np.array(X[1:,:])
-        Xm=np.mean(X,0)
-        Xsd=np.std(X,0)
-        Rm=np.mean(R,0)
-        Rsd=np.std(R,0)
-        
-        DATA.append([Rm+1j*Xm,Rsd+1j*Xsd])
-        
-    return(DATA)      
+    w=np.pi*2*exp.f
+    
+    z0=exp.bobina['R0']+1j*w*exp.bobina['L0']
+    x0=w*exp.bobina['L0']  
+    try:
+        # correccion muestras
+        filename_aire=exp.info.archivo[exp.info.archivo.str.contains('aire',case=False)].values[0]
+        za=data_mean[filename_aire]
+        datacorrnorm={}
+        datacorrnorm_test={}
+        filename_muestras=[x for x in data_mean.keys() if not filename_aire in x]
+        for m,filename_muestra in enumerate(filename_muestras):
+            z_mean=data_mean[filename_muestra]
+            zu=z_mean
+            dzucorr=((1/(1/zu - 1/za+ 1/z0))-z0  )				
+            datacorrnorm[filename_muestra]=dzucorr/x0
+            # correcion test
+            if test==True:
+                zu_test=data_test[filename_muestra].real+1j*data_test[filename_muestra].imag
+                dzucorr=((1/(1/zu_test - 1/za+ 1/z0))-z0  )	
+                datacorrnorm_test[filename_muestra]=dzucorr.values/x0
+            # con el .values le saco los indices		
+
+        medicion_aire={'filename_aire': filename_aire, 'za': za}
+        if test==True:
+            return datacorrnorm,data_test,datacorrnorm_test,medicion_aire
+        else:
+            return datacorrnorm,medicion_aire
+    except Exception as e:
+        print(e)
 
 
-     
+
+
+def stats_dict(exp,test=True,dropfirst=True):
+    ''' excluyendo la primer repeticion para cada muestra devuelve lista de valores medios por f y sus desvios'''
+    data_mean={}
+    data_std={}
+    data_test={}
+
+    for m,datamuestra_m in enumerate(exp.data):
+        filename=datamuestra_m.filename
+
+        #excluimos la primer repeticion
+        if dropfirst==True:
+            df=datamuestra_m[datamuestra_m.repeticion != 1 ]
+        else:
+            df=datamuestra_m
+        
+        #separamos de manera aleatoria un valor de impedancia para cada frecuencia
+        if test==True:
+            df_test=df.groupby('f').sample(1)
+            #boramos del dataset original esos valores
+            df.loc[df_test.index,'imag']=np.nan
+            data_test[filename]=df_test
+
+        #calculamos mean y std 
+        
+        real_mean=df.groupby('f')['real'].mean().values
+        imag_mean=df.groupby('f')['imag'].mean().values
+        real_std=df.groupby('f')['real'].std().values
+        imag_std=df.groupby('f')['imag'].std().values
+
+        data_mean[filename]=real_mean+1j*imag_mean
+        data_std[filename]=real_std+1j*imag_std
+
+    return data_mean,data_std,data_test
+
+
+
+def corrnorm(exp,filename_muestra,repeticion,dropfirst,test=False):
+    data_mean,data_std,data_test=stats_dict(exp,test=test,dropfirst=dropfirst)
+    w=np.pi*2*exp.f
+    z0=exp.bobina['R0']+1j*w*exp.bobina['L0']
+    x0=w*exp.bobina['L0']  
+    try:
+        filename_aire=exp.info.archivo[exp.info.archivo.str.contains('aire')].values[0]
+        za=data_mean[filename_aire]
+        indice_muestra=exp.info[exp.info.archivo == filename_muestra].index.values[0]
+        df_muestra=exp.data[indice_muestra]
+        df_repeticion=df_muestra[df_muestra.repeticion == repeticion]
+        zu_serie=df_repeticion.real + 1j*df_repeticion.imag
+        zu=zu_serie.values
+        dzucorr=((1/(1/zu - 1/za+ 1/z0))-z0  )				
+        dzucorrnorm=dzucorr/x0
+        return dzucorrnorm
+    except Exception as e:
+        print(e)
+
+
+###### LEGACY
+
+# def stats(exp):
+#     ''' excluyendo la primer repeticion para cada muestra devuelve lista de valores medios por f y sus desvios'''
+#     data_mean=[]
+#     data_std=[]
+#     data_test=[]
+
+#     for m,datamuestra_m in enumerate(exp.data):
+#         #excluimos la primer repeticion
+#         df=datamuestra_m[datamuestra_m.repeticion != 1 ]
+#         #separamos de manera aleatoria un valor de impedancia para cada frecuencia
+#         df_test=df.groupby('f').sample(1)
+
+#         #boramos del dataset original esos valores
+#         df.loc[df_test.index,'imag']=np.nan
+#         #calculamos mean y std 
+#         real_mean=df.groupby('f')['real'].mean().values
+#         imag_mean=df.groupby('f')['imag'].mean().values
+#         real_std=df.groupby('f')['real'].std().values
+#         imag_std=df.groupby('f')['imag'].std().values
+
+#         data_mean.append(real_mean+1j*imag_mean)
+#         data_std.append(real_std+1j*imag_std)
+#         data_test.append(df_test)
+
+#     return data_mean,data_std,data_test
+
+
+# def corrnorm(exp,index_file_aire):
+#     """ corrige y normaliza los datos, toma como input el vector de frecuencias, la info de la bobina y los datos
+#         devuelve una lista de arrays, cada array es la impedancia compleja corregida y normalizada para cada frecuencia, parte real y parte imaginaria
+#         para recuperar la parte real  (.real) e imaginaria (.imag)
+        
+#         z=re+i*2pi*f*l0
+#     """ 
+#     lista_z_mean,data_std,data_test=stats(exp)
+#     w=np.pi*2*exp.f
+    
+#     z0=exp.bobina['R0']+1j*w*exp.bobina['L0']
+#     x0=w*exp.bobina['L0']  
+
+#     za=lista_z_mean[index_file_aire]
+#     datacorrnorm={}
+#     for m,z_mean in enumerate(lista_z_mean):
+#         if m != index_file_aire:
+#             zu=z_mean
+#             dzucorr=((1/(1/zu - 1/za+ 1/z0))-z0  )				
+#             datacorrnorm[str(m)]=dzucorr/x0
+#     return datacorrnorm,data_test
