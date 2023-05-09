@@ -49,10 +49,17 @@ def get_info(path,bobina=None):
         data=pd.DataFrame(lines)
         data.columns=['archivo','conductividad','espesor','bobina']
         data['muestras']=data.archivo.apply(lambda x: get_id(x))
-        muestras=pd.read_csv('./datos/muestras.csv')
+        muestras=pd.read_csv('./iamend_ci/muestras2.csv')
         data.conductividad=data.muestras.apply(lambda x: get_sigma(x,muestras))
         data.espesor=data.muestras.apply(lambda x: get_esp(x,muestras))
         data=data.sort_values('archivo')
         data.to_csv(path+'info.txt',index=False)
     else:
         print('No se encontraron archivos, revise la ruta.')
+
+
+
+def lista_mediciones():
+    rootdir = './iamend_ci/datos/'
+    for path in glob.glob(f'{rootdir}/*/'):
+        print(path)
