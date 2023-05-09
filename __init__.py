@@ -215,7 +215,7 @@ class exp():
             #ajusto sobre todas las muestras
             if not hasattr(self,'z1eff'):
                 print('Ajustando z1 effectivo')
-                if self.fitpatron():
+                if self.fitPatron():
                     muestras=self.dznorm[self.dznorm.muestra.str.contains('M')].muestra.unique()
                     self.info['mueff']=np.nan
                     self.info['R2']=np.nan
@@ -310,7 +310,7 @@ class exp():
                 for fn in range(n_splits_f):
                     fo=int(fmu_fit['fs'][fn][0]/1000)
                     ff=int(fmu_fit['fs'][fn][-1]/1000)
-                    self.info.loc[self.info.muestras==x,'mu '+str(fo)+'k-'+str(ff)+'k']=fmu_fit['mues'][fn]   
+                    self.info.loc[self.info.archivo==x,'mu '+str(fo)+'k-'+str(ff)+'k']=fmu_fit['mues'][fn]   
                 fmu_fits[x]=fmu_fit             
             self.fmues=fmu_fits
 
@@ -331,7 +331,7 @@ class exp():
             for fn in range(n_splits_f):
                 fo=int(fmu_fit['fs'][fn][0]/1000)
                 ff=int(fmu_fit['fs'][fn][-1]/1000)
-                self.info.loc[self.info.muestras==x,'mu '+str(fo)+'k-'+str(ff)+'k']=fmu_fit['mues'][fn]   
+                self.info.loc[self.info.archivo==x,'mu '+str(fo)+'k-'+str(ff)+'k']=fmu_fit['mues'][fn]   
             fmu_fits[x]=fmu_fit             
             self.fmues=fmu_fits
 
@@ -349,15 +349,21 @@ class exp():
 
 
 
-    def implot(self,n):
-        archivo=self.info.iloc[n].archivo
-        y=self.dznorm[self.dznorm.muestra== self.info.iloc[1].archivo]
-        plt.im(y,self.f,archivo)
+    def implot(self,n,static=False):
+        if static == True:
+            archivo=self.info.iloc[n].archivo
+            y=self.dznorm[self.dznorm.muestra== self.info.iloc[1].archivo]
+            plt.im(y,self.f,archivo)
+        else:
+            pb.plot_im(self,n)
 
-    def replot(self,n):
-        archivo=self.info.iloc[n].archivo
-        y=self.dznorm[self.dznorm.muestra== self.info.iloc[1].archivo]
-        plt.re(y,self.f,archivo)
+    def replot(self,n,static=False):
+        if static == True:
+            archivo=self.info.iloc[n].archivo
+            y=self.dznorm[self.dznorm.muestra== self.info.iloc[1].archivo]
+            plt.re(y,self.f,archivo)
+        else:
+            pb.plot_re(self,n)
 
 
     def muesplot(self):

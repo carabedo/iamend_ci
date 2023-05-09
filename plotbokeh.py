@@ -7,10 +7,39 @@ import logging
 
 output_notebook()
 
+
+tool_list = ['box_zoom', 'reset','pan']
+
+
+def plot_im(exp,indice_muestra):
+    altura=500
+    ancho=600
+    x=exp.f
+    muestra_filename=exp.info.iloc[indice_muestra].archivo
+    ymeas=exp.dznorm[exp.dznorm.muestra == muestra_filename].imag.values
+    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+                        tools=tool_list,x_axis_type="log")
+    #scatter ymeas
+    plot1.circle(x, ymeas)
+    show(plot1)
+
+def plot_re(exp,indice_muestra):
+    altura=500
+    ancho=600
+    x=exp.f
+    muestra_filename=exp.info.iloc[indice_muestra].archivo
+    ymeas=exp.dznorm[exp.dznorm.muestra == muestra_filename].real.values
+    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+                        tools=tool_list,x_axis_type="log")
+    #scatter ymeas
+    plot1.circle(x, ymeas)
+    show(plot1)
+
+
+
 def plot_fit_patron(exp,param_geo,indice_patron):
     altura=500
     ancho=600
-    tool_list = ['box_zoom', 'reset']
     x=exp.f
     bobina_effectiva=exp.coil
     l0=bobina_effectiva[-1]
@@ -39,7 +68,6 @@ def plot_fit_patron(exp,param_geo,indice_patron):
 
 
 def plot_fit_mues(exp):
-    tool_list = ['box_zoom', 'reset']
     plots=[]
     for muestra in exp.dznorm.muestra.unique():
         if 'M' in muestra:
@@ -80,7 +108,6 @@ def plot_fit_mues(exp):
 
 
 def plot_fit_mu(exp,indice_muestra,altura=500,ancho=600):
-    tool_list = ['box_zoom', 'reset']
     x=exp.f
     archivo_muestra=exp.info.iloc[indice_muestra].archivo
     y=exp.dznorm.query('muestra=="'+archivo_muestra+'"').imag.values
@@ -90,15 +117,15 @@ def plot_fit_mu(exp,indice_muestra,altura=500,ancho=600):
     fig.circle(x, y)
     fig.line(x=x, y=yteo, line_color="#f46d43", line_width=2, line_alpha=0.6)
     show(fig)
-    return fig
 
 
-def plot_fit_fmu(exp,muestra,altura=500,ancho=600):
-    tool_list = ['box_zoom', 'reset']
+
+def plot_fit_fmu(exp,indice_muestra,altura=500,ancho=600):
 
     markers=["square",'triangle','circle','inverted_triangle']
     try:
-        muestra_name=exp.dznorm[exp.dznorm.muestra.str.contains(muestra.upper())].muestra.values[0]
+
+        muestra_name=exp.info.iloc[indice_muestra].archivo
         fmu=exp.fmues[muestra_name]
         plot1 = figure(x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura,
                     width=ancho, tools=tool_list,x_axis_type="log")
