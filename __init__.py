@@ -293,9 +293,9 @@ class exp():
     def fitfMues(self,*args,**kwargs):
 
         if len(args) == 0:
-            pass
+            print('definir cantidad de intervalos')
         elif len(args)==1:
-            print('fiteo en N tramos')
+            print('fiteo en N intervalos')
             n_splits_f=args[0]
             muestras=self.dznorm[self.dznorm.muestra.str.contains('M')].muestra.unique()
             coil_eff=self.coil
