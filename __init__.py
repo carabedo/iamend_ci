@@ -210,6 +210,27 @@ class Experimento():
             self.ypreds=yteos
         return self.info.iloc[indice_muestras]
     
+    def fitDosCapas(self,indice_archivo,nombre_inf,nombre_sup,param):
+        f=self.f
+        bo=self.coil
+        x0=self.x0
+        row=self.info.iloc[indice_archivo]
+        nombre_archivo=row.archivo
+        sigma2=row.conductividad
+        mur2=row.mur
+
+        ymeas=self.dznorm[self.dznorm.muestra==nombre_archivo]
+        if nombre_sup == 'nc':
+            sigma1=0
+            mur1=1
+            if param == 'd':
+                lmax=3000
+
+                dz2layers(f,bo,sigma1,sigma2,d,mur1,mur2,lmax).imag/x0
+
+        else:
+            pass
+            
 
     def fitMues(self,indice_muestras='all'):
         '''
