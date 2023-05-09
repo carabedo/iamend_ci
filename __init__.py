@@ -18,11 +18,11 @@ import traceback
 
 # definicion de la clase 'exp'
 
-class exp():
+class Experimento():
     ''' Clase Experimentos:
     Se instancian con el nombre de la carpeta donde estan los archivos del solatron. Un carpeta para cada bobina, todo el experimento necesita una medicion en aire. Medicion en un patron para el ajuste efectivo del lift-off.
     '''
-    def __init__(self,path,normcorr=True,test=False,dropfirst=True):
+    def __init__(self,path,normcorr=True,test=True,dropfirst=True):
         self.path=path
         try:
             infopath=[x for x in os.listdir(path) if 'info' in x][0]
@@ -55,6 +55,8 @@ class exp():
             self.f=so.getf(self)
 
             self.w=2*np.pi*self.f
+            
+            self.x0=self.w*self.bobina['L0']
 
             # Genero como atributos los dataframes
             for i,df_ci in enumerate(self.data):
@@ -119,6 +121,8 @@ class exp():
         f_serie=pd.Series(self.f)
         f_new_mask=f_serie.between(f_inicial,f_final)
         self.f=f_serie[f_new_mask].values
+        self.w=2*np.pi*self.f
+        self.x0=self.w*self.bobina['L0']
         # ajustamos parametros geometricos effectivos en el rango
         ## filtramos de dznorm las frecuencias nuevas
         self.dznorm=self.dznorm[self.dznorm.f.between(f_inicial,f_final)]
@@ -192,7 +196,7 @@ class exp():
             fpar,fcov=fit.z1(self.f,self.coil,dzucorrnorm,esp,sigma,mur=mur)
             self.info.loc[i,'loeff']=fpar
             self.info.loc[i,'uloeff']=fcov
-            x0=2*np.pi*self.f*self.coil[-1]
+            x0=self.x0
             bob_eff=self.coil.copy()
             bob_eff[4]=fpar[0]
 
@@ -231,7 +235,7 @@ class exp():
                         #mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
                         fpar,fcov=fit.mu(self.f,self.coil,dzucorrnorm,esp,sigma,row.archivo.values[0])
                         self.info.loc[row.index.values[0],'mueff']=fpar
-                        x0=2*np.pi*self.f*self.coil[-1]
+                        x0=self.x0
                         yteo=theo.dzD(self.f,self.coil,sigma,esp,fpar,1500)/x0
                         yteos[x]=yteo
 
@@ -257,7 +261,7 @@ class exp():
                     fpar,fcov=fit.mu(self.f,self.coil,dzucorrnorm,esp,sigma,row.archivo)
                     self.info.loc[i,'mueff']=fpar
                     self.info.loc[i,'umueff']=fcov
-                    x0=2*np.pi*self.f*self.coil[-1]
+                    x0=self.x0
                     yteo=theo.dzD(self.f,self.coil,sigma,esp,fpar,1500)/x0
                     yteos[row.archivo]=yteo
                     if self.test==True:
@@ -279,7 +283,7 @@ class exp():
                 fpar,fcov=fit.mu(self.f,self.coil,dzucorrnorm,esp,sigma,row.archivo)
                 self.info.loc[i,'mueff']=fpar
                 self.info.loc[i,'umueff']=fcov
-                x0=2*np.pi*self.f*self.coil[-1]
+                x0=self.x0
                 yteo=theo.dzD(self.f,self.coil,sigma,esp,fpar,1500)/x0
                 yteos[row.archivo]=yteo
                 if self.test==True:
@@ -339,13 +343,19 @@ class exp():
 
     # ploteos
 
-    def implots(self):
-        fig=px.line(self.dznorm,x='f',y='imag',color='muestra',log_x=True)
-        fig.show()
+    def implots(self,lib='bokeh'):
+        if lib=='bokeh':
+            pb.implots(self)
+        else:
+            fig=px.line(self.dznorm,x='f',y='imag',color='muestra',log_x=True)
+            fig.show()
 
-    def replots(self):
-        fig=px.line(self.dznorm,x='f',y='real',color='muestra',log_x=True)
-        fig.show()
+    def replots(self,lib='bokeh'):
+        if lib=='bokeh':
+            pb.replots(self)
+        else:
+            fig=px.line(self.dznorm,x='f',y='real',color='muestra',log_x=True)
+            fig.show()
 
 
 

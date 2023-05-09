@@ -3,7 +3,9 @@ from bokeh.plotting import figure, show
 from bokeh.layouts import  gridplot
 import numpy as np
 import iamend_ci.theo as theo	
+from iamend_ci.so import corrnorm
 import logging
+from bokeh.palettes import Category20
 
 output_notebook()
 
@@ -11,29 +13,59 @@ output_notebook()
 tool_list = ['box_zoom', 'reset','pan']
 
 
+
+def implots(exp,altura=500,ancho=900):
+    x=exp.f
+    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+                        tools=tool_list,x_axis_type="log")
+    for i,m in enumerate(exp.dznorm.muestra.unique()):
+        ymeas=exp.dznorm[exp.dznorm.muestra == m].imag.values
+        plot1.line(x, ymeas,line_width=2,line_color=Category20[len(exp.dznorm.muestra.unique())][i],legend_label=m)
+    plot1.legend.click_policy="hide"
+    show(plot1)
+
+
+def replots(exp,altura=500,ancho=900):
+    x=exp.f
+    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+                        tools=tool_list,x_axis_type="log")
+    for i,m in enumerate(exp.dznorm.muestra.unique()):
+        ymeas=exp.dznorm[exp.dznorm.muestra == m].real.values
+        plot1.line(x, ymeas,line_width=2,line_color=Category20[len(exp.dznorm.muestra.unique())][i],legend_label=m)
+    plot1.legend.click_policy="hide"
+    show(plot1)
+
 def plot_im(exp,indice_muestra):
     altura=500
     ancho=600
     x=exp.f
     muestra_filename=exp.info.iloc[indice_muestra].archivo
-    ymeas=exp.dznorm[exp.dznorm.muestra == muestra_filename].imag.values
-    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+    fig = figure( title=muestra_filename, x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
                         tools=tool_list,x_axis_type="log")
-    #scatter ymeas
-    plot1.circle(x, ymeas)
-    show(plot1)
+    df_ci=exp.data[indice_muestra]
+    
+    for i in df_ci.repeticion.unique():
+        
+        ymeas=corrnorm(exp,muestra_filename,i).imag
+        fig.circle(x, ymeas,fill_color="white",fill_alpha=0,alpha=0.3)
+    show(fig)
+    
 
 def plot_re(exp,indice_muestra):
     altura=500
     ancho=600
     x=exp.f
     muestra_filename=exp.info.iloc[indice_muestra].archivo
-    ymeas=exp.dznorm[exp.dznorm.muestra == muestra_filename].real.values
-    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+    fig = figure( title=muestra_filename, x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
                         tools=tool_list,x_axis_type="log")
-    #scatter ymeas
-    plot1.circle(x, ymeas)
-    show(plot1)
+    df_ci=exp.data[indice_muestra]
+    
+    for i in df_ci.repeticion.unique():
+        
+        ymeas=corrnorm(exp,muestra_filename,i).real
+        fig.circle(x, ymeas,fill_color="white",fill_alpha=0,alpha=0.3)
+    show(fig)
+    
 
 
 
@@ -51,7 +83,7 @@ def plot_fit_patron(exp,param_geo,indice_patron):
         espesorpatron=exp.info.espesor.iloc[indice_patron]
         sigmapatron=exp.info.conductividad.iloc[indice_patron]
         yteo=theo.dzD(exp.f,bobina_effectiva,sigmapatron,espesorpatron,1,3000).imag/x0
-        plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
+        plot1 = figure(title=patron_filename, x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho,
                          tools=tool_list,x_axis_type="log")
         #scatter ymeas
         plot1.circle(x, ymeas)
