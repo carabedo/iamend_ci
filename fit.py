@@ -204,9 +204,26 @@ def fmu(f,coil_eff,n_splits_f,dzcorrnorm,sigma,espesor,name):
     }          
     return datafmu
 
-def mu2layers(exp,layer1,layer2):
-    pass
+def fit2capas(exp,capa_sup,capa_inf,param):
+    if param=='d':
+        f=exp.f
+        bo=exp.coil
+        sigma1=capa_sup['sigma']
+        mur1=capa_sup['mur']
 
+        sigma2=capa_inf['sigma']
+        mur2=capa_inf['mur']
+        nombre_archivo=capa_inf['indice_archivo'] 
+        lmax=3000
+        x0=exp.x0
+
+        def fund(x):
+            return theo.ddz2capas(f,bo,sigma1,sigma2,x,mur1,mur2,lmax).imag/x0
+        
+        xmeas=f
+        ymeas=exp.dznorm[exp.dznorm.muestra==nombre_archivo]
+        fpar, fcov=optimize.curve_fit(fund, xmeas, ymeas, p0=[1e-3], bounds=[0,20e-3])
+    return(fpar, fcov)
 
 # matplotlib
 

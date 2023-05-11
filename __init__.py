@@ -211,23 +211,28 @@ class Experimento():
         return self.info.iloc[indice_muestras]
     
     def fitDosCapas(self,indice_archivo,nombre_inf,nombre_sup,param):
-        f=self.f
-        bo=self.coil
-        x0=self.x0
-        row=self.info.iloc[indice_archivo]
-        nombre_archivo=row.archivo
-        sigma2=row.conductividad
-        mur2=row.mur
+  
+        row_inf=self.info.iloc[indice_archivo]
+        nombre_archivo=row_inf.archivo
+        capa2={
+             'sigma' : row_inf.conductividad,
+             'mur' : row_inf.mur
+        }
 
-        ymeas=self.dznorm[self.dznorm.muestra==nombre_archivo]
+        data=pd.read_csv('./datos/muestras.csv')
+        row_sup=data[data.nombre==nombre_sup]
+        capa1={
+             'sigma' : row_sup.conductividad,
+             'mur' : 1
+        }
+
         if nombre_sup == 'nc':
-            sigma1=0
-            mur1=1
+
             if param == 'd':
-                lmax=3000
 
-                dz2layers(f,bo,sigma1,sigma2,d,mur1,mur2,lmax).imag/x0
-
+                fit.fit2capas(self,capa1,capa2,param='d')
+            else:
+                 pass
         else:
             pass
             
