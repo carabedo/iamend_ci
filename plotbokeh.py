@@ -151,6 +151,17 @@ def plot_fit_mu(exp,indice_muestra,altura=500,ancho=600):
     show(fig)
 
 
+def plot_fit_sigma(exp,indice_muestra,yteo,altura=500,ancho=600):
+    x=exp.f
+    archivo_muestra=exp.info.iloc[indice_muestra].archivo
+    y=exp.dznorm.query('muestra=="'+archivo_muestra+'"').imag.values
+    sigma_eff=exp.info.iloc[indice_muestra].sigma_eff
+    fig = figure( title=archivo_muestra+' sigma_eff = '+ str(sigma_eff/1e6),x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',height=altura, width=ancho, tools=tool_list,x_axis_type="log")
+    fig.circle(x, y)
+    fig.line(x=x, y=yteo, line_color="#f46d43", line_width=2, line_alpha=0.6)
+    show(fig)
+
+
 
 def plot_fit_fmu(exp,indice_muestra,altura=500,ancho=600):
 

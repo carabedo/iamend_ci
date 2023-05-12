@@ -16,6 +16,9 @@ from sklearn.metrics import r2_score as R2
 import logging
 import traceback
 
+path_muestras_csv = os.path.join(os.path.dirname(__file__), "datos", 'muestras.csv')
+
+
 # definicion de la clase 'exp'
 
 class Experimento():
@@ -48,9 +51,6 @@ class Experimento():
                 self.data=so.load(self)
             except:
                 self.data=so.load(self,separador=',')
-
-
-            print(self.info)  
 
             self.f=so.getf(self)
 
@@ -171,7 +171,6 @@ class Experimento():
             if plot == True:
                 pb.plot_fit_patron(self,param_geo,indice_patron)
 
-            return True
         
         except Exception as e:
             print(e)   
@@ -210,32 +209,40 @@ class Experimento():
             self.ypreds=yteos
         return self.info.iloc[indice_muestras]
     
-    def fitDosCapas(self,indice_archivo,nombre_inf,nombre_sup,param):
+
+
+    def fitDosCapas(self,indice_archivo,muestra_inferior,muestra_superior,param):
   
-        row_inf=self.info.iloc[indice_archivo]
-        nombre_archivo=row_inf.archivo
-        capa2={
-             'sigma' : row_inf.conductividad,
-             'mur' : row_inf.mur
+        row_inferior=self.info.iloc[indice_archivo]
+        nombre_archivo=row_inferior.archivo
+
+        capa_inferior={
+             'sigma' : row_inferior.conductividad,
+             'mur' : row_inferior.permeabilidad,
+             'indice_archivo' : indice_archivo
         }
 
-        data=pd.read_csv('./datos/muestras.csv')
-        row_sup=data[data.nombre==nombre_sup]
-        capa1={
-             'sigma' : row_sup.conductividad,
-             'mur' : 1
-        }
 
-        if nombre_sup == 'nc':
+        if muestra_superior.lower() == 'nc':
+
+            capa_superior={
+                'sigma' : 0,
+                'mur' : 1
+            }
+
 
             if param == 'd':
 
-                fit.fit2capas(self,capa1,capa2,param='d')
+                fpar, fcov=fit.fit2capas(self,capa_superior,capa_inferior,param='d')
+                return fpar,fcov
             else:
                  pass
         else:
             pass
             
+
+
+        
 
     def fitMues(self,indice_muestras='all'):
         '''
@@ -243,59 +250,34 @@ class Experimento():
         '''
         if indice_muestras=='all':
             #ajusto sobre todas las muestras
-            if not hasattr(self,'z1eff'):
-                print('Ajustando z1 effectivo')
-                if self.fitPatron():
-                    muestras=self.dznorm[self.dznorm.muestra.str.contains('M')].muestra.unique()
-                    self.info['mueff']=np.nan
-                    self.info['R2']=np.nan
+                if not hasattr(self,'z1eff'):
+                    self.fitPatron()
+                muestras=self.dznorm[self.dznorm.muestra.str.contains('M')].muestra.unique()
+                self.info['mueff']=np.nan
+                self.info['R2']=np.nan
 
-                    yteos={}
-                    for x in muestras:
-                        print('Ajustando mur',x)
-                        row=self.info[self.info.archivo.str.contains(x,case=False)]
-                        esp=row.espesor.values[0]
-                        sigma=row.conductividad.values[0]
-                        dzucorrnorm=self.dznorm[self.dznorm.muestra == x].dzcorrnorm.values
-
-                        #mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
-                        fpar,fcov=fit.mu(self.f,self.coil,dzucorrnorm,esp,sigma,row.archivo.values[0])
-                        self.info.loc[row.index.values[0],'mueff']=fpar
-                        x0=self.x0
-                        yteo=theo.dzD(self.f,self.coil,sigma,esp,fpar,1500)/x0
-                        yteos[x]=yteo
-
-                        # validacion con test de la parte imaginaria
-                        if self.test == True:
-                            dzucorrnorm_test=self.dznorm_test[self.dznorm_test.muestra == x].dzcorrnorm.values
-                            r2=R2(yteo.imag,dzucorrnorm_test.imag)
-                            self.info.loc[row.index.values[0],'R2']=r2
-                    self.ypreds=yteos
-            else:
-                mylist = [self.za['filename_aire'], self.patron_fitgeo['filename']]
-                pattern = '|'.join(mylist)
-                muestras=self.info.archivo[~self.info.archivo.str.contains(pattern)]
                 yteos={}
-                for i in muestras.index:
+                for x in muestras:
+                    print('Ajustando mur',x)
+                    row=self.info[self.info.archivo.str.contains(x,case=False)]
+                    esp=row.espesor.values[0]
+                    sigma=row.conductividad.values[0]
+                    dzucorrnorm=self.dznorm[self.dznorm.muestra == x].dzcorrnorm.values
 
-                    row=self.info.iloc[i]
-                    print('Ajustando mur',row.archivo)
-                    esp=row.espesor
-                    sigma=row.conductividad
-                    dzucorrnorm=self.dznorm[self.dznorm.muestra == row.archivo].dzcorrnorm.values
                     #mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
-                    fpar,fcov=fit.mu(self.f,self.coil,dzucorrnorm,esp,sigma,row.archivo)
-                    self.info.loc[i,'mueff']=fpar
-                    self.info.loc[i,'umueff']=fcov
+                    fpar,fcov=fit.mu(self.f,self.coil,dzucorrnorm,esp,sigma,row.archivo.values[0])
+                    self.info.loc[row.index.values[0],'mueff']=fpar
                     x0=self.x0
                     yteo=theo.dzD(self.f,self.coil,sigma,esp,fpar,1500)/x0
-                    yteos[row.archivo]=yteo
-                    if self.test==True:
-                        # validacion con test de la parte imaginaria
-                        dzucorrnorm_test=self.dznorm_test[self.dznorm_test.muestra == row.archivo].dzcorrnorm.values
+                    yteos[x]=yteo
+
+                    # validacion con test de la parte imaginaria
+                    if self.test == True:
+                        dzucorrnorm_test=self.dznorm_test[self.dznorm_test.muestra == x].dzcorrnorm.values
                         r2=R2(yteo.imag,dzucorrnorm_test.imag)
-                        self.info.loc[i,'R2']=r2
+                        self.info.loc[row.index.values[0],'R2']=r2
                 self.ypreds=yteos
+
         else:
             #solo sobre las muestras de la lista de indices
             yteos={}
@@ -365,8 +347,42 @@ class Experimento():
             fmu_fits[x]=fmu_fit             
             self.fmues=fmu_fits
 
-            print('fiteo desde A a B')    
+            print('fiteo desde A a B')   
 
+    def fitSigma(self,indice_muestra,bounds=[0.1e6,20e6],plot=True):
+        i=indice_muestra
+        row=self.info.iloc[i]
+        esp=row.espesor
+        mur=row.permeabilidad
+        dzucorrnorm=self.dznorm[self.dznorm.muestra == row.archivo].dzcorrnorm.values
+        #mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
+        fpar,fcov=fit.sigma(self.f,self.coil,dzucorrnorm,esp,mur,bounds)
+        self.info.loc[i,'sigma_eff']=fpar
+        self.info.loc[i,'usigmaa_eff']=fcov
+        x0=self.x0
+        yteo=theo.dzD(self.f,self.coil,fpar,esp,mur,1500)/x0
+
+        if plot == True:
+            pb.plot_fit_sigma(self,indice_muestra,yteo.imag)
+        return self.info.iloc[indice_muestra]
+    
+
+    def fitMuSigma(self,indice_muestra,plot=True):
+        i=indice_muestra
+        row=self.info.iloc[i]
+        esp=row.espesor
+        dzucorrnorm=self.dznorm[self.dznorm.muestra == row.archivo].dzcorrnorm.values
+        #mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
+        fpar,fcov=fit.muSigma(self.f,self.coil,dzucorrnorm,esp)
+        self.info.loc[i,'mur_eff']=fpar[0]
+        self.info.loc[i,'sigma_eff']=fpar[1]
+
+        x0=self.x0
+        yteo=theo.dzD(self.f,self.coil,fpar[1],esp,fpar[0],1500)/x0
+
+        if plot == True:
+            pb.plot_fit_sigma(self,indice_muestra,yteo.imag)
+        return self.info.iloc[indice_muestra]
     # ploteos
 
     def implots(self,lib='bokeh'):
@@ -417,11 +433,16 @@ class Experimento():
     def set_z1eff(self,z1eff):
         setattr(self,'z1eff',z1eff)
 
+    def update_permeabilidad(self,nombre_muestra,mueff):
+        self.info.loc[self.info.muestras==nombre_muestra,'permeabilidad']=mueff
+
     # imprime la string para la instancia
     def __str__(self):
         return f'Experimento ({self.path})'
     def __repr__(self):
         return f'Experimento ({self.path})'
+    
+
 
 ## Auxiliar
 

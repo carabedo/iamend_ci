@@ -159,8 +159,26 @@ def muSigma(f,bo_eff,dzucorrnorm,dpatron):
     x0=w*l0    
     xmeas=f
     ymeas=dzucorrnorm.imag   
-    fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[5,1e6], bounds=[[1,0.1e6],[10,2e6]])
+    fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[5,1e6], bounds=[[1,0.1e6],[100,10e6]])
     return(fpar, fcov)
+
+def sigma(f,bo_eff,dzucorrnorm,dpatron,mu,bounds):
+
+    def funsigma(x,sigma):
+        return theo.dzD(x,bo_eff,sigma,dpatron,mu,1500).imag/x0
+
+    l0=bo_eff[-1]    
+    w=2*np.pi*f
+    x0=w*l0    
+    xmeas=f
+    ymeas=dzucorrnorm.imag   
+    fpar, fcov=optimize.curve_fit(funsigma, 
+                                  xmeas, 
+                                  ymeas, 
+                                  p0=[1e6], 
+                                  bounds=bounds)
+    
+    return(fpar[0], np.sqrt(fcov[0][0]))
 
 def fmu(f,coil_eff,n_splits_f,dzcorrnorm,sigma,espesor,name):
     """fmu (frecuencia, bobina, n_splits_f,datacorr,sigma,dpatron, name)
@@ -204,26 +222,29 @@ def fmu(f,coil_eff,n_splits_f,dzcorrnorm,sigma,espesor,name):
     }          
     return datafmu
 
-def fit2capas(exp,capa_sup,capa_inf,param):
+def fit2capas(exp,capa_superior,capa_inferior,param):
     if param=='d':
         f=exp.f
         bo=exp.coil
-        sigma1=capa_sup['sigma']
-        mur1=capa_sup['mur']
+        sigma1=capa_superior['sigma']
+        mur1=capa_superior['mur']
 
-        sigma2=capa_inf['sigma']
-        mur2=capa_inf['mur']
-        nombre_archivo=capa_inf['indice_archivo'] 
+        sigma2=capa_inferior['sigma']
+        mur2=capa_inferior['mur']
+        indice_archivo=capa_inferior['indice_archivo'] 
+        nombre_archivo=exp.info.iloc[indice_archivo].archivo
         lmax=3000
         x0=exp.x0
 
-        def fund(x):
-            return theo.ddz2capas(f,bo,sigma1,sigma2,x,mur1,mur2,lmax).imag/x0
+        def fund(x,d):
+            return theo.dz2capas(x,bo,sigma1,sigma2,d,mur1,mur2,lmax).imag/x0
         
         xmeas=f
-        ymeas=exp.dznorm[exp.dznorm.muestra==nombre_archivo]
-        fpar, fcov=optimize.curve_fit(fund, xmeas, ymeas, p0=[1e-3], bounds=[0,20e-3])
-    return(fpar, fcov)
+        ymeas=exp.dznorm[exp.dznorm.muestra==nombre_archivo].imag.values
+
+        parametro_efectivo, uparametro_efectivo=optimize.curve_fit(fund, xmeas, ymeas, p0=[1e-3], bounds=(0,20e-3))
+        uparametro_efectivo=np.sqrt(uparametro_efectivo[0][0])
+    return(parametro_efectivo[0], uparametro_efectivo)
 
 # matplotlib
 
