@@ -149,7 +149,7 @@ def mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
     fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[1], bounds=(0,150))
     return(fpar, np.sqrt(fcov[0][0]))
 
-def muSigma(f,bo_eff,dzucorrnorm,dpatron):
+def muSigma(f,bo_eff,dzucorrnorm,dpatron,bounds):
 
     def funmu(x,mu,sigma):
         return theo.dzD(x,bo_eff,sigma,dpatron,mu,1500).imag/x0
@@ -159,7 +159,9 @@ def muSigma(f,bo_eff,dzucorrnorm,dpatron):
     x0=w*l0    
     xmeas=f
     ymeas=dzucorrnorm.imag   
-    fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[5,1e6], bounds=[[1,0.1e6],[100,10e6]])
+    p0_0=np.mean([bounds[0][0],bounds[1][0]])
+    p0_1=np.mean([bounds[0][1],bounds[1][1]])
+    fpar, fcov=optimize.curve_fit(funmu, xmeas, ymeas, p0=[p0_0,p0_1], bounds=bounds)
     return(fpar, fcov)
 
 def sigma(f,bo_eff,dzucorrnorm,dpatron,mu,bounds):

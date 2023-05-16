@@ -367,13 +367,13 @@ class Experimento():
         return self.info.iloc[indice_muestra]
     
 
-    def fitMuSigma(self,indice_muestra,plot=True):
+    def fitMuSigma(self,indice_muestra,plot=True,bounds=[[1,0.1e6],[100,10e6]]):
         i=indice_muestra
         row=self.info.iloc[i]
         esp=row.espesor
         dzucorrnorm=self.dznorm[self.dznorm.muestra == row.archivo].dzcorrnorm.values
         #mu(f,bo_eff,dzucorrnorm,dpatron,sigma, name):
-        fpar,fcov=fit.muSigma(self.f,self.coil,dzucorrnorm,esp)
+        fpar,fcov=fit.muSigma(self.f,self.coil,dzucorrnorm,esp,bounds)
         self.info.loc[i,'mur_eff']=fpar[0]
         self.info.loc[i,'sigma_eff']=fpar[1]
 
@@ -430,12 +430,17 @@ class Experimento():
         pb.plot_fit_fmu(self,muestra)
 
 
-    def set_z1eff(self,z1eff):
-        setattr(self,'z1eff',z1eff)
 
+
+    def update_z1eff(self,z1eff):
+        setattr(self,'z1eff',z1eff)
+        self.coil[4]=self.z1eff
+        
     def update_permeabilidad(self,nombre_muestra,mueff):
         self.info.loc[self.info.muestras==nombre_muestra,'permeabilidad']=mueff
 
+    def update_conductividad(self,nombre_muestra,sigmaeff):
+        self.info.loc[self.info.muestras==nombre_muestra,'conductividad']=sigmaeff
     # imprime la string para la instancia
     def __str__(self):
         return f'Experimento ({self.path})'
