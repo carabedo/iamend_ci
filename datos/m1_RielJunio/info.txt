@@ -1,0 +1,10 @@
+archivo,conductividad,permeabilidad,espesor,bobina,muestras
+Exp_Aire.csv,0.0,0.0,0.0,m1,aire
+Exp_R000_00.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_01.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_02.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_03.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_04.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_05.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_06.csv,1.0,1.0,1.0,m1,R000
+Exp_R000_07.csv,1.0,1.0,1.0,m1,R000
