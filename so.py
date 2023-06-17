@@ -73,7 +73,7 @@ def load_folder(folder_path,separador=';'):
         df=read(folder_path+'/'+filepath,separador)
 
         data.append(df) 
-    return data  
+    return data,csv_files  
 
 
 def getf(exp):
