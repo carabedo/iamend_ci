@@ -5,6 +5,7 @@ import numpy as np
 #esto sirve para no tener daramas con el path en windows/unix
 from pathlib import Path #falta implementar
 import traceback
+import glob 
 
 def read(file, separador):
     # lee archivo csv del solatron
@@ -60,6 +61,19 @@ def load(exp,separador=';'):
             data.append(dfci) 
     return data  
 
+def load_folder(folder_path,separador=';'):
+    files = glob.glob(folder_path+ "*.csv")
+    csv_files=[ x.split('/')[-1] for x in files]
+  
+
+    #hay que remplazar por diccionario se mezclan los datos.
+    data=[]
+    for k,filepath in enumerate(csv_files):
+
+        df=read(folder_path+'/'+filepath,separador)
+
+        data.append(df) 
+    return data  
 
 
 def getf(exp):
