@@ -41,7 +41,7 @@ class Experimento():
                     self.bobina=bo.data_dicts[info.bobina[0]]     
                 except:
                     print('No se encontraron datos de la bobina: ', info.bobina[0])
-
+                ## borre esto: self.coil=bo.data[info.bobina[0]]   
             else:
                 print('Mas de una bobina, separe las mediciones en carpetas para cada bobina.')
             

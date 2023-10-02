@@ -106,3 +106,49 @@ def jhf(r,z,I,f,bo,sigma,mur,lmax=1000):
 
 
 
+## Pancake
+
+mu0=4*3.14*1e-7
+
+def spiral_l0(coil):
+    N=coil['N']
+    a1=coil['a1']
+    a2=coil['a2']
+    h1=coil['h1']
+    aint=(numpy.pi*mu0*(N**2))/((a2-a1)**2)
+    lim=1e4
+    int_uv=scipy.integrate.quad(lambda u: (u**-4)*I(u,a1,a2)**2,
+                                        0, lim)
+    return aint*int_uv[0]
+
+def I(u,r1,r2):
+    """ funcion auxiliar"""
+    return     scipy.integrate.quad(lambda x: x*scipy.special.jv(1,x) ,u*r1,u*r2)[0]
+
+
+def alfa1(u,f,sigma,mur):
+  return numpy.sqrt(u + 1j*2*numpy.pi*f*sigma*mur*mu0 )
+
+def sig(u,f,sigma,mur):
+    up=mur*u-alfa1(u,f,sigma,mur)
+    down=mur*u+alfa1(u,f,sigma,mur)
+    return up/down
+
+def spiral_dzhf(f,coil,muestra):
+    N=coil['N']
+    a1=coil['a1']
+    a2=coil['a2']
+    h1=coil['h1']
+    w=2*numpy.pi*f
+    sigma=muestra['sigma']
+    mur=muestra['mur']
+
+    aint=(1j*w*numpy.pi*mu0*(N**2))/((a2-a1)**2)
+    lim=1e4
+
+    re_int_uv=scipy.integrate.quad(lambda u: numpy.real((numpy.exp(-2*u*h1))*(u**-4)*sig(u,f,sigma,mur)*I(u,a1,a2)**2),
+                                        0, lim)[0]
+    im_int_uv=scipy.integrate.quad(lambda u: numpy.imag((numpy.exp(-2*u*h1))*(u**-4)*sig(u,f,sigma,mur)*I(u,a1,a2)**2),
+                                        0, lim)[0]
+    
+    return aint*(re_int_uv + 1j*im_int_uv)
