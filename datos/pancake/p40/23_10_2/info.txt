@@ -1,0 +1,4 @@
+archivo,conductividad,espesor,bobina,muestras
+Exp_Aire.csv,0,0,P40,aire
+Exp_B057.csv,3948000.0,0.14957,P40,B057
+Exp_B071.csv,17470000.0,0.14957,P40,B071
