@@ -296,3 +296,4 @@ def pxlogfit(x,Y,titulo):
     fig["layout"]["xaxis"].update( type='log',zeroline=False , autorange=True   )
     fig["layout"]["yaxis"].update( type='linear',zeroline=False , autorange=True   )
     return(fig)
+
