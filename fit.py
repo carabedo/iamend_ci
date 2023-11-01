@@ -297,3 +297,5 @@ def pxlogfit(x,Y,titulo):
     fig["layout"]["yaxis"].update( type='linear',zeroline=False , autorange=True   )
     return(fig)
 
+# pancake
+
