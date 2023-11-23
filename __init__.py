@@ -66,7 +66,7 @@ class Experimento():
                 self.normcorr(test=test,dropfirst=dropfirst)
 
         except Exception as e:
-            print("There was an error: " + e.args[0] + ". The line where the code failed was " + str(traceback.extract_stack()[-1][1]))
+            print("There was an error at Experimento(): " + e.args[0] + ". The line where the code failed was " + str(traceback.extract_stack()[-1][1]))
 
 
 
@@ -113,7 +113,7 @@ class Experimento():
                 self.test=False
 
         except Exception as e:
-            print("There was an error: " + e.args[0] + ". The line where the code failed was " + str(traceback.extract_stack()[-1][1]))
+            print("There was an error at normcorr(): " + e.args[0] + ". The line where the code failed was " + str(traceback.extract_stack()[-1][1]))
 
 
     def set_frange(self,f_inicial,f_final):
