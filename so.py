@@ -133,7 +133,7 @@ def corrnorm_dict(exp,test=True,dropfirst=True):
         else:
             return datacorrnorm,medicion_aire
     except Exception as e:
-        print(e)
+        print(str(traceback.format_exc()))
 
 
 
