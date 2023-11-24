@@ -16,72 +16,77 @@ tool_list = ['box_zoom', 'reset','pan']
 
 
 
-def raw_im(df):
-  altura=500
-  ancho=900
-  df2=df.copy()
-  df2['im_w']=df2.imag/(2*np.pi*df2.f)
-  x=df.f.unique()
-  y_mean=df2.groupby('f').im_w.mean()
-  y_lower=df2.groupby('f').im_w.mean()-df2.groupby('f').im_w.std()
-  y_upper=df2.groupby('f').im_w.mean()+df2.groupby('f').im_w.std()
-  bottom=df2.im_w.min()
-  top=df2.im_w.max()
+def raw_im(df,fig=None,out=None):
+    altura=500
+    ancho=900
+    df2=df.copy()
+    df2['im_w']=df2.imag/(2*np.pi*df2.f)
+    x=df.f.unique()
+    y_mean=df2.groupby('f').im_w.mean()
+    y_lower=df2.groupby('f').im_w.mean()-df2.groupby('f').im_w.std()
+    y_upper=df2.groupby('f').im_w.mean()+df2.groupby('f').im_w.std()
+    bottom=df2.im_w.min()
+    top=df2.im_w.max()
+    if fig == None:
+        fig = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',
+                            tools=tool_list,x_axis_type="log",
+                            height=altura, width=ancho,
+                            y_range=(bottom, top)
+                        )
+    fig.line(x, y_mean,line_width=2)
+    source = ColumnDataSource(data={
+    'x'       : x,
+    'y'       : y_mean,
+    'lower'   :y_lower,
+    'upper'  : y_upper})
 
-  plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',
-                      tools=tool_list,x_axis_type="log",
-                       height=altura, width=ancho,
-                      y_range=(bottom, top)
-                  )
+    band = Band(base='x', lower='lower', upper='upper', source=source,
+            fill_alpha=0.1, fill_color="blue", line_color="black")
+    fig.add_layout(band)
 
-  plot1.line(x, y_mean,line_width=2)
+    if out == None:
+        show(fig)
+    else:
+        return fig
+    
 
 
-  source = ColumnDataSource(data={
-  'x'       : x,
-  'y'       : y_mean,
-  'lower'   :y_lower,
-  'upper'  : y_upper})
-  
-  band = Band(base='x', lower='lower', upper='upper', source=source,
-          fill_alpha=0.1, fill_color="blue", line_color="black")
-  
-  plot1.add_layout(band)
 
-  show(plot1)
 
 def raw_re(df):
-  altura=500
-  ancho=900
-  df2=df.copy()
-  x=df.f.unique()
-  y_mean=df2.groupby('f').real.mean()
-  y_lower=df2.groupby('f').real.mean()-df2.groupby('f').real.std()
-  y_upper=df2.groupby('f').real.mean()+df2.groupby('f').real.std()
-  bottom=df2.real.min()
-  top=df2.real.max()
+    altura=500
+    ancho=900
+    df2=df.copy()
+    x=df.f.unique()
+    y_mean=df2.groupby('f').real.mean()
+    y_lower=df2.groupby('f').real.mean()-df2.groupby('f').real.std()
+    y_upper=df2.groupby('f').real.mean()+df2.groupby('f').real.std()
+    bottom=df2.real.min()
+    top=df2.real.max()
 
-  plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',
-                      tools=tool_list,x_axis_type="log",
-                       height=altura, width=ancho,
-                      y_range=(bottom, top)
-                  )
+    plot1 = figure( x_axis_label='f[Hz]',y_axis_label='im(dz)/x0',
+                        tools=tool_list,x_axis_type="log",
+                        height=altura, width=ancho,
+                        y_range=(bottom, top)
+                    )
 
-  plot1.line(x, y_mean,line_width=2)
+    plot1.line(x, y_mean,line_width=2)
 
 
-  source = ColumnDataSource(data={
-  'x'       : x,
-  'y'       : y_mean,
-  'lower'   :y_lower,
-  'upper'  : y_upper})
-  
-  band = Band(base='x', lower='lower', upper='upper', source=source,
-          fill_alpha=0.1, fill_color="blue", line_color="black")
-  
-  plot1.add_layout(band)
+    source = ColumnDataSource(data={
+    'x'       : x,
+    'y'       : y_mean,
+    'lower'   :y_lower,
+    'upper'  : y_upper})
 
-  show(plot1)
+    band = Band(base='x', lower='lower', upper='upper', source=source,
+            fill_alpha=0.1, fill_color="blue", line_color="black")
+
+    plot1.add_layout(band)
+
+    show(plot1)
+
+
 
 def implots(exp,altura=500,ancho=900):
     x=exp.f
