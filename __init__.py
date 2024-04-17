@@ -96,7 +96,6 @@ class Experimento():
                 dfdz_test=pd.melt(df_test,id_vars=df.columns[-1], var_name='muestra',value_name='dzcorrnorm')
                 dfdz_test['imag']=np.imag(dfdz_test['dzcorrnorm'])
                 dfdz_test['real']=np.real(dfdz_test['dzcorrnorm'])
-                self.dznorm=dfdz
                 self.dznorm_test=dfdz_test
                 self.test=True
             else:
